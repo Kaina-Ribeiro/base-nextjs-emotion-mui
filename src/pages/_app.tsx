@@ -1,6 +1,10 @@
+import { CacheProvider, EmotionCache } from '@emotion/react';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 import { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { ReactElement, ReactNode } from 'react';
+import createEmotionCache from '../styles/createEmotionCache';
+import theme from '../themes/theme';
 
 type NextPageWithLayout<P = unknown> = NextPage<P> & {
   // eslint-disable-next-line no-unused-vars
@@ -8,12 +12,26 @@ type NextPageWithLayout<P = unknown> = NextPage<P> & {
 };
 
 type AppPropsWithLayout = AppProps & {
+  emotionCache?: EmotionCache;
   Component: NextPageWithLayout;
 };
 
-function MyApp({ Component, pageProps }: AppPropsWithLayout) {
+const clientSideEmotionCache = createEmotionCache();
+
+function MyApp({
+  Component,
+  pageProps,
+  emotionCache = clientSideEmotionCache,
+}: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
-  return <>{getLayout(<Component {...pageProps} />)}</>;
+  return (
+    <CacheProvider value={emotionCache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {getLayout(<Component {...pageProps} />)}
+      </ThemeProvider>
+    </CacheProvider>
+  );
 }
 
 export default MyApp;
